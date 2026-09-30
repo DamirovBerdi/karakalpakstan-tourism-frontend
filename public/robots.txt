@@ -1,0 +1,10 @@
+# ==============================================================================
+# Robots.txt - Karakalpakstan Tourism Portal
+# ==============================================================================
+
+User-agent: *
+Allow: /
+
+# Admin routes
+Disallow: /admin
+Disallow: /api/
