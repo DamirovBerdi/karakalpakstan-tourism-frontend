@@ -1,5 +1,6 @@
 import { findResponse } from '@/data/chatKnowledgeBase';
 import type { Lang } from './translations';
+import { BACKEND_URL } from './api';
 
 // Obfuscation Salt & Deobfuscator to protect tokens from casual scraping / DevTools inspection
 const SALT = 0x5a;
@@ -286,15 +287,26 @@ export async function askGeminiGuide(
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+        const url = `${BACKEND_URL.replace(/\/$/, '')}/api/gemini`;
 
         const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-goog-api-key': key,
+            'x-user-gemini-key': key,
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify({
+            model,
+            contents,
+            systemInstruction: {
+              parts: [{ text: SYSTEM_PROMPT }],
+            },
+            generationConfig: {
+              temperature: 0.7,
+              topP: 0.9,
+              maxOutputTokens: 2048,
+            },
+          }),
           signal: controller.signal,
         });
 
@@ -412,9 +424,10 @@ export async function generateGeminiAudio(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 90000); // 90-second generation window for unlimited text
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const url = `${BACKEND_URL.replace(/\/$/, '')}/api/gemini`;
 
       const requestBody = {
+        model,
         contents: [{ parts: [{ text: spokenText }] }],
         generationConfig: {
           responseModalities: ['AUDIO'],
@@ -432,7 +445,7 @@ export async function generateGeminiAudio(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-goog-api-key': key,
+          'x-user-gemini-key': key,
         },
         body: JSON.stringify(requestBody),
         signal: controller.signal,
