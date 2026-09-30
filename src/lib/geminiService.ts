@@ -2,30 +2,6 @@ import { findResponse } from '@/data/chatKnowledgeBase';
 import type { Lang } from './translations';
 import { BACKEND_URL } from './api';
 
-// Obfuscation Salt & Deobfuscator to protect tokens from casual scraping / DevTools inspection
-const SALT = 0x5a;
-
-function deobfuscateToken(encoded: string): string {
-  try {
-    const binary = atob(encoded);
-    const chars: string[] = [];
-    for (let i = 0; i < binary.length; i++) {
-      chars.push(String.fromCharCode(binary.charCodeAt(i) ^ (SALT + (i % 7))));
-    }
-    return chars.join('');
-  } catch {
-    return '';
-  }
-}
-
-// Obfuscated Token Hashes (Never exposed in plain text)
-const OBFUSCATED_GEMINI_POOL: string[] = [
-  'GwpyHDxnMhRtFRhtLQ4CGSseazQZND4DMxgwDy9vCxkUEytrYzRtCWYFLSMmMzwcVQsTJTo=',
-  'GwpyHDxnMhRtFSUTMSQ4NWwrCBAkMAlxPwowB2piHgdqOQ0SDm4cDxkNCBosOnMlU2MuMyo=',
-  'GwpyHDxnMhRtFmgaJwcrYjgMCQ8LYmoRFiQKJS1oKjZsL1gNEAYtNSwWOzRkBT87GXcpJAw=',
-  'GwpyHDxnMhRtFgwBNysjHDgWBDsOOy4FCisFNAwRbho0HAc8OG0VEhw5Ey0yPyk7CS5qJQw=',
-];
-
 function getDecodedTokens(): string[] {
   let customKeys: string[] = [];
   try {
@@ -36,25 +12,7 @@ function getDecodedTokens(): string[] {
   } catch {
     // ignore
   }
-
-  // First check if environment variables are provided
-  const envKeys = [
-    import.meta.env.VITE_GEMINI_API_KEY_1,
-    import.meta.env.VITE_GEMINI_API_KEY_2,
-    import.meta.env.VITE_GEMINI_API_KEY_3,
-    import.meta.env.VITE_GEMINI_API_KEY_4,
-  ].filter(Boolean) as string[];
-
-  const processedEnvKeys = envKeys.map((k) => {
-    if (k.startsWith('AIza') || k.startsWith('AQ.')) return k;
-    return deobfuscateToken(k);
-  }).filter(Boolean);
-
-  const poolKeys = OBFUSCATED_GEMINI_POOL.map(deobfuscateToken).filter(Boolean);
-
-  const combined = [...customKeys, ...processedEnvKeys, ...poolKeys];
-  const unique = Array.from(new Set(combined));
-  return unique.length > 0 ? unique : poolKeys;
+  return customKeys.length > 0 ? customKeys : [''];
 }
 
 const STORAGE_ACTIVE_KEY_INDEX = 'kk_gemini_active_idx';
