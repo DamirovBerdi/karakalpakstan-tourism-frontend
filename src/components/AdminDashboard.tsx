@@ -398,7 +398,12 @@ export default function AdminDashboard() {
                 setLoggingIn(true);
                 await supabase.auth.signInWithOAuth({
                   provider: 'google',
-                  options: { redirectTo: window.location.origin + '/#admin' }
+                  options: {
+                    redirectTo: window.location.origin + '/#admin',
+                    queryParams: {
+                      prompt: 'select_account',
+                    },
+                  }
                 });
               }}
               className="mb-4 flex w-full items-center justify-center gap-2.5 rounded-xl border border-sand-300 bg-white py-2.5 px-4 text-xs font-bold text-deepblue-900 transition-all hover:bg-sand-50 shadow-sm"
