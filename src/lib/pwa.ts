@@ -108,7 +108,7 @@ export async function registerServiceWorker(): Promise<void> {
     try {
       const keys = await caches.keys();
       for (const key of keys) {
-        if (!key.includes('v6')) {
+        if (!key.includes('v7')) {
           await caches.delete(key);
         }
       }

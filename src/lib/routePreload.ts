@@ -87,38 +87,41 @@ export function preloadRoute(target: string): void {
 }
 
 /**
- * Starts background idle prefetching for top tourist routes
- * so user clicks on primary sections load instantly from cache.
+ * Starts gentle background idle prefetching for the top 3 essential routes.
+ * Strictly postponed until AFTER window 'load' + 3.5s idle period to keep initial JS
+ * execution, hero image loading, and first paint blistering fast.
  */
 export function initBackgroundPreloading(): void {
   if (typeof window === 'undefined') return;
 
-  const TOP_ROUTES = [
-    'tours',
-    'aral',
-    'virtual',
-    'museums',
-    'gps-map',
-    'cuisine',
-    'hotels',
-    'taxi',
-    'stories',
-    'analytics',
-    'budget',
-    'community',
-  ];
+  // Respect user's Data-Saver preferences and avoid mobile 2G network congestion
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const nav = navigator as any;
+  if (nav?.connection?.saveData === true) return;
+  if (nav?.connection?.effectiveType === '2g' || nav?.connection?.effectiveType === 'slow-2g') return;
 
-  const schedulePreloads = () => {
-    TOP_ROUTES.forEach((route, index) => {
+  const CORE_ROUTES = ['tours', 'aral', 'virtual'];
+
+  const runSchedule = () => {
+    CORE_ROUTES.forEach((route, index) => {
       setTimeout(() => {
         preloadRoute(route);
-      }, 350 + index * 250);
+      }, 3500 + index * 2000);
     });
   };
 
-  if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(() => schedulePreloads(), { timeout: 3500 });
+  const scheduleOnIdle = () => {
+    if ('requestIdleCallback' in window) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).requestIdleCallback(() => runSchedule(), { timeout: 6000 });
+    } else {
+      setTimeout(runSchedule, 3500);
+    }
+  };
+
+  if (document.readyState === 'complete') {
+    scheduleOnIdle();
   } else {
-    setTimeout(schedulePreloads, 1500);
+    window.addEventListener('load', scheduleOnIdle, { once: true });
   }
 }

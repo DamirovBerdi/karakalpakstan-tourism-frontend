@@ -1,30 +1,37 @@
-const CACHE_NAME = 'kk-tourism-v6';
-const IMAGE_CACHE_NAME = 'kk-images-v6';
+// ============================================================================
+// Service Worker v7 — High-Performance Caching & Offline Engine
+// ============================================================================
+
+const CACHE_NAME = 'kk-tourism-v7';
+const ASSET_CACHE_NAME = 'kk-assets-v7';
+const FONT_CACHE_NAME = 'kk-fonts-v7';
+const IMAGE_CACHE_NAME = 'kk-images-v7';
+
+const CURRENT_CACHES = [CACHE_NAME, ASSET_CACHE_NAME, FONT_CACHE_NAME, IMAGE_CACHE_NAME];
+
 const ASSETS_TO_CACHE = [
   '/',
-  '/index.html'
+  '/index.html',
+  '/robots.txt'
 ];
 
-// Domains for fast image caching
 const IMAGE_HOSTS = ['images.pexels.com', 'images.unsplash.com', 'source.unsplash.com'];
 
-// Install Event
+// 1. Install Event — Precache core shell
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
 });
 
-// Activate Event - Clean up old caches immediately and take control
+// 2. Activate Event — Immediately prune legacy caches (v6, v5, etc.) and claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME && cache !== IMAGE_CACHE_NAME) {
+          if (!CURRENT_CACHES.includes(cache)) {
             return caches.delete(cache);
           }
         })
@@ -33,16 +40,36 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event
+// 3. Fetch Event — Multi-tier specialized caching strategy
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
 
-  // Ignore non-http(s) schemes (e.g. chrome-extension://, moz-extension://)
+  // Ignore non-http schemes (extensions, data:, etc.)
   if (!url.protocol.startsWith('http')) return;
 
-  // Cache photos from image hosts (Pexels, Unsplash)
+  // A. Google Fonts — Cache-First (Fonts never change)
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+    event.respondWith(
+      caches.open(FONT_CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
+        try {
+          const res = await fetch(event.request);
+          if (res.status === 200 || res.type === 'opaque') {
+            cache.put(event.request, res.clone());
+          }
+          return res;
+        } catch {
+          return cached || Response.error();
+        }
+      })
+    );
+    return;
+  }
+
+  // B. Images (Pexels, Unsplash, local images) — Cache-First with background populate
   if (IMAGE_HOSTS.includes(url.hostname) || event.request.destination === 'image') {
     event.respondWith(
       caches.open(IMAGE_CACHE_NAME).then(async (cache) => {
@@ -63,12 +90,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Exclude non-same-origin API calls
+  // C. Vite Hashed Assets (/assets/*) — Cache-First (Hashed filenames are 100% immutable)
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.open(ASSET_CACHE_NAME).then(async (cache) => {
+        const cachedAsset = await cache.match(event.request);
+        if (cachedAsset) return cachedAsset;
+
+        try {
+          const networkResponse = await fetch(event.request);
+          if (networkResponse.status === 200) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch {
+          return cachedAsset || Response.error();
+        }
+      })
+    );
+    return;
+  }
+
+  // Exclude non-same-origin API calls from HTML/page handler
   if (url.origin !== self.location.origin) {
     return;
   }
 
-  // For HTML navigation & index.html, use Network-First so users always get current chunk hashes
+  // D. HTML Navigation & Entry Shell — Network-First so users always get the freshest deployment
   if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html') {
     event.respondWith(
       fetch(event.request)
@@ -84,11 +132,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Let Vite hashed immutable assets load directly through browser HTTP cache
-  if (url.pathname.startsWith('/assets/')) {
-    return;
-  }
-
+  // E. Fallback for other same-origin assets — Stale-While-Revalidate
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
       const cachedResponse = await cache.match(event.request);
@@ -106,7 +150,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Message listener for immediate activation
+// 4. Message listener for immediate skipWaiting
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
