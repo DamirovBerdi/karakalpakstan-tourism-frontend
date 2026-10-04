@@ -3,6 +3,7 @@ import { Star, Phone, MessageCircle, Languages as LangIcon, Award } from 'lucide
 import { useLang } from '@/lib/LanguageContext';
 import { guides as staticGuides, Guide } from '@/data/tourism';
 import { supabase } from '@/lib/supabase';
+import OptimizedImage from '@/components/OptimizedImage';
 
 export default function Guides() {
   const { t } = useLang();
@@ -120,11 +121,12 @@ interface RawGuide {
               className="group rounded-2xl bg-white shadow-sm ring-1 ring-sand-200 overflow-hidden transition-all duration-300 hover:shadow-elevated hover:-translate-y-1"
             >
               <div className="relative h-56 overflow-hidden">
-                <img
+                <OptimizedImage
                   src={guide.photo}
                   alt={guide.name}
-                  loading="lazy"
-                  decoding="async"
+                  widthParam={500}
+                  qualityParam={70}
+                  containerClassName="h-full w-full"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute top-3 right-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-deepblue-900 shadow flex items-center gap-1">

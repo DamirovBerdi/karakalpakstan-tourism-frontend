@@ -4,6 +4,7 @@ import { useLang } from '@/lib/LanguageContext';
 import type { Lang } from '@/lib/translations';
 import { virtualTours } from '@/data/heritage';
 import { trackSpotView } from '@/lib/trackSpotView';
+import OptimizedImage from '@/components/OptimizedImage';
 
 export default function VirtualTour() {
   const { lang, t } = useLang();
@@ -85,9 +86,12 @@ export default function VirtualTour() {
               className="group relative overflow-hidden rounded-2xl bg-white shadow-subtle ring-1 ring-sand-200 transition-all hover:shadow-elevated hover:ring-deepblue-300 text-left"
             >
               <div className="relative h-44 sm:h-48 overflow-hidden">
-                <img
+                <OptimizedImage
                   src={tour.image}
                   alt={tour.name[lang as Lang]}
+                  widthParam={500}
+                  qualityParam={70}
+                  containerClassName="h-full w-full"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />

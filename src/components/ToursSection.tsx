@@ -15,6 +15,7 @@ import { getText } from '@/lib/translations';
 import { supabase } from '@/lib/supabase';
 import { tours, TRAVEL_MODES, type TravelMode, type Tour } from '@/data/tours';
 import TravelModeSelector from './TravelModeSelector';
+import OptimizedImage from '@/components/OptimizedImage';
 
 export default function ToursSection() {
   const { lang, t } = useLang();
@@ -59,10 +60,12 @@ export default function ToursSection() {
                   className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-subtle ring-1 ring-sand-200 transition-all duration-300 hover:shadow-elevated hover:-translate-y-1"
                 >
                   <div className="relative h-48 overflow-hidden">
-                    <img
+                    <OptimizedImage
                       src={tour.image}
                       alt={getText(tour.title, lang)}
-                      loading="lazy"
+                      widthParam={550}
+                      qualityParam={70}
+                      containerClassName="h-full w-full"
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-deepblue-900/60 to-transparent" />

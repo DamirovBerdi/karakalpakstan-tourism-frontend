@@ -7,6 +7,7 @@ import { useLang } from '@/lib/LanguageContext';
 import { hotels, type Hotel } from '@/data/tourism';
 import { supabase } from '@/lib/supabase';
 import { trackServiceUsage } from '@/lib/visitorTracking';
+import OptimizedImage from '@/components/OptimizedImage';
 
 type FilterType = 'all' | Hotel['type'];
 
@@ -186,9 +187,12 @@ export default function Hotels() {
               className="group rounded-2xl bg-white shadow-sm ring-1 ring-sand-200 overflow-hidden transition-all duration-300 hover:shadow-elevated hover:-translate-y-1"
             >
               <div className="relative h-48 overflow-hidden">
-                <img
+                <OptimizedImage
                   src={hotel.image}
                   alt={hotel.name}
+                  widthParam={550}
+                  qualityParam={70}
+                  containerClassName="h-full w-full"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute top-3 right-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-deepblue-900 shadow flex items-center gap-1">
@@ -296,7 +300,14 @@ export default function Hotels() {
               <div>
                 {/* Hotel header */}
                 <div className="relative h-32 overflow-hidden rounded-t-2xl">
-                  <img src={selectedHotel.image} alt={selectedHotel.name} className="h-full w-full object-cover" />
+                  <OptimizedImage
+                    src={selectedHotel.image}
+                    alt={selectedHotel.name}
+                    widthParam={650}
+                    qualityParam={70}
+                    containerClassName="h-full w-full"
+                    className="h-full w-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-deepblue-900/90 to-transparent" />
                   <div className="absolute bottom-3 left-5">
                     <h3 className="font-display text-xl font-bold text-white">{selectedHotel.name}</h3>

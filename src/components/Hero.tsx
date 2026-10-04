@@ -4,7 +4,7 @@ import { useLang } from '@/lib/LanguageContext';
 import { guides, hotels, transportRoutes } from '@/data/tourism';
 import { preloadRoute } from '@/lib/routePreload';
 
-const HERO_IMAGE = 'https://images.pexels.com/photos/28949995/pexels-photo-28949995.jpeg?auto=compress&cs=tinysrgb&w=1920';
+const HERO_IMAGE = 'https://images.pexels.com/photos/28949995/pexels-photo-28949995.jpeg?auto=compress&cs=tinysrgb&w=1280&q=70';
 
 export default function Hero() {
   const { t } = useLang();
@@ -37,6 +37,8 @@ export default function Hero() {
           alt="Karakalpakstan Ustyurt plateau cliffs at sunset"
           loading="eager"
           decoding="async"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...({ fetchpriority: 'high' } as any)}
           className="h-full w-full object-cover animate-slow-zoom"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-ink-900/65 via-ink-900/55 to-ink-900/85" />

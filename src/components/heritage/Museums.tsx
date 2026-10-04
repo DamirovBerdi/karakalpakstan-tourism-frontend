@@ -5,6 +5,7 @@ import { useLang } from '@/lib/LanguageContext';
 import type { Lang } from '@/lib/translations';
 import { museums } from '@/data/heritage';
 import { trackSpotView } from '@/lib/trackSpotView';
+import OptimizedImage from '@/components/OptimizedImage';
 
 type FilterType = 'all' | 'art' | 'history' | 'ecology';
 
@@ -71,9 +72,12 @@ export default function Museums() {
                 {/* Image */}
                 <div className="relative sm:w-2/5 overflow-hidden flex-shrink-0">
                   <div className="h-48 sm:h-full">
-                    <img
+                    <OptimizedImage
                       src={museum.image}
                       alt={museum.name[lang as Lang]}
+                      widthParam={550}
+                      qualityParam={70}
+                      containerClassName="h-full w-full"
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   </div>
