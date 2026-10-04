@@ -199,10 +199,10 @@ export const SYSTEM_PROMPT = `
 
 // Reliable high-speed Gemini chat models with automatic model fallback
 const CHAT_MODELS = [
-  'gemini-3-flash-preview',
   'gemini-3.1-flash-lite',
-  'gemini-3.6-flash',
+  'gemini-3-flash-preview',
   'gemini-3.8-flash',
+  'gemini-3.6-flash',
 ];
 
 // Calling Gemini with multi-model fallback and auto-rotation across all keys
