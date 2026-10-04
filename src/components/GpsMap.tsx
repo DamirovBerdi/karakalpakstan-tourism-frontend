@@ -282,24 +282,45 @@ export default function GpsMap() {
 
   // 6. Share Location
   const shareLocation = useCallback(async () => {
-    if (!userLocation || !user) return;
-    const { error } = await supabase.from('location_shares').insert({
-      lat: userLocation.lat,
-      lng: userLocation.lng,
-      label: 'Моя текущая геолокация',
-    });
-    if (error) {
-      setLocationError(error.message);
-      return;
-    }
+    if (!userLocation) return;
+    setLocationError(null);
+
     const shareUrl = `https://maps.google.com/?q=${userLocation.lat},${userLocation.lng}`;
+
+    // Always copy / share immediately so tourist has their location link in hand
     if (navigator.share) {
-      navigator.share({ title: 'Моя локация в Узбекистане', url: shareUrl }).catch(() => {});
-    } else {
+      navigator.share({ title: 'Моя локация в Каракалпакстане', url: shareUrl }).catch(() => {});
+      setShared(true);
+      setTimeout(() => setShared(false), 3000);
+    } else if (navigator.clipboard) {
       navigator.clipboard.writeText(shareUrl).then(() => {
         setShared(true);
         setTimeout(() => setShared(false), 3000);
+      }).catch(() => {
+        setShared(true);
+        setTimeout(() => setShared(false), 3000);
       });
+    } else {
+      setShared(true);
+      setTimeout(() => setShared(false), 3000);
+    }
+
+    // Persist to Supabase if authenticated user is logged in
+    if (user?.id) {
+      try {
+        const { error } = await supabase.from('location_shares').insert({
+          user_id: user.id,
+          lat: userLocation.lat,
+          lng: userLocation.lng,
+          label: 'Моя текущая геолокация',
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        });
+        if (error) {
+          console.warn('Location cloud sync:', error.message);
+        }
+      } catch (err) {
+        console.warn('Location sync failed:', err);
+      }
     }
   }, [userLocation, user]);
 
@@ -334,8 +355,7 @@ export default function GpsMap() {
             {userLocation && (
               <button
                 onClick={shareLocation}
-                disabled={!user}
-                className="flex items-center gap-2 rounded-xl bg-terracotta-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-terracotta-600 disabled:opacity-50 shadow-sm"
+                className="flex items-center gap-2 rounded-xl bg-terracotta-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-terracotta-600 shadow-sm"
               >
                 {shared ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
                 {shared ? t('gps.linkCopied') : t('gps.share')}
