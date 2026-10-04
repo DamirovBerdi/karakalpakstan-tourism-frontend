@@ -1,5 +1,6 @@
 import { Compass, Phone, Mail, MapPin, Facebook, Instagram, Youtube } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
+import { preloadRoute } from '@/lib/routePreload';
 
 const NAV_LINKS = [
   { key: 'nav.virtual', href: '#virtual' },
@@ -49,7 +50,12 @@ export default function Footer() {
             <ul className="grid grid-cols-2 gap-2">
               {NAV_LINKS.map((link) => (
                 <li key={link.key}>
-                  <a href={link.href} className="text-sm text-white/65 transition-colors hover:text-gold-300">
+                  <a
+                    href={link.href}
+                    onMouseEnter={() => preloadRoute(link.href)}
+                    onTouchStart={() => preloadRoute(link.href)}
+                    className="text-sm text-white/65 transition-colors hover:text-gold-300"
+                  >
                     {t(link.key)}
                   </a>
                 </li>

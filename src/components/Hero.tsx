@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, MapPin, Calendar, Users } from 'lucide-react';
 import { useLang } from '@/lib/LanguageContext';
 import { guides, hotels, transportRoutes } from '@/data/tourism';
+import { preloadRoute } from '@/lib/routePreload';
 
 const HERO_IMAGE = 'https://images.pexels.com/photos/28949995/pexels-photo-28949995.jpeg?auto=compress&cs=tinysrgb&w=1920';
 
@@ -83,20 +84,29 @@ export default function Hero() {
                   <p className="px-4 py-2 text-xs font-medium text-ink-400 border-b border-ink-100">
                     {searchResults.length} {t('hero.results')}
                   </p>
-                  {searchResults.map((r, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-ink-50 transition-colors border-b border-ink-50 last:border-0"
-                    >
-                      <span className="rounded-md bg-gold-50 px-2 py-0.5 text-xs font-medium text-garnet-600">
-                        {r.type}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium text-ink-900">{r.title}</p>
-                        <p className="text-xs text-ink-500">{r.subtitle}</p>
+                  {searchResults.map((r, i) => {
+                    const targetRoute = r.type === 'Hotel' ? 'hotels' : r.type === 'Guide' ? 'guides' : 'transport';
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          window.location.hash = `#${targetRoute}`;
+                          setQuery('');
+                        }}
+                        onMouseEnter={() => preloadRoute(targetRoute)}
+                        onTouchStart={() => preloadRoute(targetRoute)}
+                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-ink-50 transition-colors border-b border-ink-50 last:border-0 cursor-pointer group"
+                      >
+                        <span className="rounded-md bg-gold-50 px-2 py-0.5 text-xs font-medium text-garnet-600 group-hover:bg-gold-100 transition-colors">
+                          {r.type}
+                        </span>
+                        <div>
+                          <p className="text-sm font-medium text-ink-900 group-hover:text-garnet-600 transition-colors">{r.title}</p>
+                          <p className="text-xs text-ink-500">{r.subtitle}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </>
               )}
             </div>

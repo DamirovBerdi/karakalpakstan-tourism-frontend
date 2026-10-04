@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import SosButton from '@/components/SosButton';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import { initVisitorTracking } from '@/lib/visitorTracking';
+import { preloadRoute, initBackgroundPreloading } from '@/lib/routePreload';
 
 // Safe lazy import with auto-retry when a new build deploys new hashed chunks
 function lazyRetry<T extends React.ComponentType<any>>(
@@ -87,8 +88,30 @@ const HONEYPOT_PATHS = [
 
 function SectionLoader() {
   return (
-    <div className="flex items-center justify-center py-20">
-      <div className="h-9 w-9 animate-spin rounded-full border-4 border-gold-400 border-t-transparent" />
+    <div className="w-full animate-pulse">
+      {/* Skeleton Page Banner */}
+      <div className="bg-gradient-to-r from-ink-950 via-ink-900 to-ink-950 pt-24 pb-10 border-b border-white/10 shadow-lg">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="h-7 w-32 rounded-xl bg-white/10 mb-4" />
+          <div className="h-9 w-64 max-w-md rounded-xl bg-white/20 mb-2" />
+          <div className="h-4 w-96 max-w-sm rounded-lg bg-white/10" />
+        </div>
+      </div>
+      {/* Skeleton Content Cards */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="rounded-2xl border border-sand-200 bg-white p-5 shadow-sm space-y-4">
+              <div className="h-44 w-full rounded-xl bg-sand-200/80" />
+              <div className="h-6 w-3/4 rounded-lg bg-sand-200" />
+              <div className="space-y-2">
+                <div className="h-3.5 w-full rounded bg-sand-200/60" />
+                <div className="h-3.5 w-4/5 rounded bg-sand-200/60" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -274,6 +297,9 @@ function HomeExploreGrid() {
               <button
                 key={page.id}
                 onClick={() => navigateTo(page.id)}
+                onMouseEnter={() => preloadRoute(page.id)}
+                onTouchStart={() => preloadRoute(page.id)}
+                onFocus={() => preloadRoute(page.id)}
                 className="group flex flex-col justify-between p-5 rounded-2xl bg-white border border-sand-200 text-left shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
                 <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${page.gradient} text-white mb-4 shadow-sm group-hover:scale-110 transition-transform`}>
@@ -300,6 +326,14 @@ function AppContent() {
   const route = useCurrentRoute();
 
   const isHoneypot = HONEYPOT_PATHS.some((p) => currentPath === p || currentPath.startsWith(`${p}/`));
+
+  useEffect(() => {
+    initBackgroundPreloading();
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [route]);
 
   useEffect(() => {
     if (currentPath !== '/admin' && !isHoneypot) {
@@ -557,7 +591,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-sand-50">
       <Navbar />
-      <main>
+      <main key={route} className="animate-fade-in min-h-[60vh]">
         <Suspense fallback={<SectionLoader />}>{renderRouteContent()}</Suspense>
       </main>
       <Footer />
